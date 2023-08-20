@@ -2,14 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:async_redux/async_redux.dart';
 import 'package:state_management/actions/increment_action.dart';
 import 'package:state_management/actions/reset_action.dart';
+import 'package:state_management/persistor/persistor.dart';
 
 import 'package:state_management/state/counter_state.dart';
 
 late Store<CounterState> store;
 
-void main() {
+void main() async  {
+  WidgetsFlutterBinding.ensureInitialized();
+  var persistor = MyPersistor();
+
+  var initialState = await persistor.readState();
+
+  if (initialState == null) {
+      initialState = CounterState.initial();
+      await persistor.saveInitialState(initialState);
+    }
+
+
   store = Store<CounterState>(
-    initialState: CounterState.initial(),
+    initialState: initialState,
+    persistor: PersistorPrinterDecorator(persistor),
   );
   runApp(const MyApp());
 }
